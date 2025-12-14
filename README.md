@@ -2,50 +2,12 @@
 
 **Learn by doing: hands-on examples for building AI agents with the NCP SDK**
 
-This repository contains complete, working examples that demonstrate how to build AI agents using the [NCP SDK](https://docs.google.com/document/d/1dge4J665P3SigTRK3RAHm0sZ1U3niYx6XwpatqoJC14/edit?tab=t.0#heading=h.49a6698begdo). Each example is designed to teach specific concepts while providing production-ready code you can learn from.
-
+This repository contains complete, working SDK agents that demonstrate how to build AI agents using the [NCP SDK](https://docs.google.com/document/d/1dge4J665P3SigTRK3RAHm0sZ1U3niYx6XwpatqoJC14/edit?tab=t.0#heading=h.49a6698begdo). 
 ---
 
-## 🎯 Getting Started
+### Each Agent must Includes
 
-### Prerequisites
-
-- **Python 3.8+** (Python 3.9+ recommended)
-- **pip** package manager
-- **ncp-sdk** installed (`pip install ncp-sdk`)
-
-### Quick Setup
-
-```bash
-# Clone this repository
-git clone <repository-url>
-cd ncp-sdk-examples
-
-# Create a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install NCP SDK
-pip install ncp-sdk
-
-# Verify installation
-ncp --help
-```
-
-## 📖 How to Use These Examples
-
-### Learning Path
-
-We recommend following this sequence:
-
-1. **Start with hello-agent** - Learn the basics
-2. **Pick examples by interest** - Choose what's relevant to you
-3. **Modify and experiment** - Best way to learn!
-4. **Build your own** - Apply what you've learned
-
-### Each Example Includes
-
-- ✅ **Comprehensive README**: Step-by-step tutorial
+- ✅ **Comprehensive README**: Step-by-step Guide
 - ✅ **Complete Code**: Production-ready, commented
 - ✅ **Project Structure**: Standard NCP SDK layout
 - ✅ **Example Interactions**: See what it does
