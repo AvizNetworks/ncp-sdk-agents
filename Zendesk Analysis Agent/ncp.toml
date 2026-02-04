@@ -1,0 +1,12 @@
+[project]
+name = "Zendesk_Analysis_Agent"
+version = "0.2.0"
+description = "An Network Copilot AI agent project"
+
+[build]
+python_version = "3.11"
+entry_point = "agents.main_agent:agent"
+
+[platform]
+url = "https://10.20.X.X:9001"
+api_key = ""

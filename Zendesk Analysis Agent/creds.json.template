@@ -1,0 +1,35 @@
+{
+    "zendesk": {
+        "subdomain": "aviz",
+        "email": "ai.infra@aviznetworks.com",
+        "api_token": ""
+    },
+    "ssh": {
+        "ncp_dump": {
+            "host": "10.20.11.202",
+            "user": "ncp-agent",
+            "password": "",
+            "base_dir": "/home/ravi/ZenDesk-dumps"
+        },
+        "archive": {
+            "host": "10.20.11.202",
+            "user": "ncp-agent",
+            "password": "",
+            "base_dir": "/home/ravi/ZenDesk-dumps"
+        }
+    },
+    "kb": {
+        "dir": "/home/ravi/ZenDesk-kb"
+    },
+    "gdrive": {
+        "token": "",
+        "refresh_token": "",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "client_id": "",
+        "client_secret": "",
+        "scopes": ["https://www.googleapis.com/auth/drive.readonly"],
+        "universe_domain": "googleapis.com",
+        "account": "",
+        "expiry": "2025-11-18T08:23:02Z"
+    }
+}
