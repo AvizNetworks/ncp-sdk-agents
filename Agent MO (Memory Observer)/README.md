@@ -206,8 +206,8 @@ ncp package .
 ## Demo
 
 🎥 **Demo Recording Available**
-A demo recording showcasing Agent-MO’s workflows and capabilities is available internally.
-(https://drive.google.com/file/d/1RZMbWtjwFZ77DnKHyzyZ9ICdo-yQKrcv/view)
+A demo recording showcasing Agent-MO’s workflows and capabilities is available here ->
+![Demo](https://drive.google.com/file/d/1L-Q4WoTJXYM9uyc9sAFzk-5zzaUkH2HR/view?usp=sharing)
 
 ---
 
