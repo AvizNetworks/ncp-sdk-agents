@@ -1,0 +1,474 @@
+{
+  "dump_recipes": {
+    "sonic": {
+      "bgp": {
+        "aliases": ["bgp", "bgp issues", "bgp flap", "neighbor down", "bgp notification"],
+        "items": [
+          {
+            "name": "bgp_syslog_tail",
+            "description": "Recent BGP-related syslog events",
+            "files": "log/syslog*",
+            "pattern": "bgp",
+            "cmd": "zgrep -i 'bgp' log/syslog* 2>/dev/null | tail -n 80"
+          },
+          {
+            "name": "bgp_notifications",
+            "description": "BGP Cease / hold-timer notifications",
+            "files": "log/syslog*",
+            "pattern": "Cease|Hold Timer|NOTIFICATION",
+            "cmd": "zgrep -Ei 'hold timer|Hold Timer|Cease|NOTIFICATION' log/syslog* 2>/dev/null | tail -n 80"
+          },
+          {
+            "name": "syslog_zebra_nexthop_kernel_failures",
+            "description": "Kernel programming failures (zebra/netlink) that align with dataplane degradation",
+            "files": "log/syslog*gz",
+            "pattern": "zebra.*Carrier for nexthop device is down|Failed to install Nexthop ID|netlink.*Network is down|error: Network is down",
+            "cmd": "rg -n -z -H -C 2 \"zebra.*Carrier for nexthop device is down|Failed to install Nexthop ID|netlink.*Network is down|error: Network is down\" log/syslog*gz 2>/dev/null | tail -n 140"
+          },
+          {
+            "name": "syslog_bgp_notifications_and_down",
+            "description": "BGP NOTIFICATION/Hold Timer/Interface down events (symptom bundle)",
+            "files": "log/syslog*gz",
+            "pattern": "bgp|NOTIFICATION|Hold Timer Expired|Cease|Down Interface down|connection collision",
+            "cmd": "rg -n -z -H -C 2 \"bgp|NOTIFICATION|Hold Timer Expired|Cease|Down Interface down|connection collision\" log/syslog*gz 2>/dev/null | tail -n 160"
+          },
+          {
+            "name": "bgp_dump_files",
+            "description": "List BGP-specific dump files",
+            "files": "dump/",
+            "pattern": "bgp",
+            "cmd": "ls dump 2>/dev/null | grep -i bgp || true"
+          }
+        ]
+      },
+      "reboot_oom_panic_compact": {
+        "aliases": [
+          "reboot", "kernel panic", "panic_on_oom", "oom", "out of memory", "out_of_memory",
+          "too many open files", "errno 24", "redis socket", "monit mem", "log freeze"
+        ],
+        "items": [
+          {
+            "name": "docker_status",
+            "description": "Docker status and restart status",
+            "files": "dump/docker.ps",
+            "pattern": "cat dump/docker.ps",
+            "cmd": "cat dump/docker.ps"
+          },
+          {
+            "name": "kdump_oom_logs",
+            "description": "kdump out of memory logs",
+            "files": "log/kdump/*",
+            "pattern": "out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process",
+            "cmd": "rg -n -z -H \"out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process\" kdump/** 2>/dev/null | tail -n 80"
+          },
+          {
+            "name": "reboot_cause",
+            "description": "reboot cause",
+            "files": "dump/reboot.cause",
+            "pattern": "Reboot cause",
+            "cmd": "cat dump/reboot.cause 2>/dev/null"
+          },
+          {
+            "name": "oom_panic_samples_capped",
+            "description": "Kernel panic / OOM proof with context (first ~60 lines)",
+            "files": "log/syslog*gz",
+            "pattern": "Kernel panic|panic_on_oom|Out of memory|oom-killer|invoked oom-killer|Killed process|kdump|Kdump",
+            "cmd": "rg -n -z -C 5 \"Kernel panic|panic_on_oom|Out of memory|oom-killer|invoked oom-killer|Killed process|kdump|Kdump\" log/syslog*gz 2>/dev/null | tail -n 60"
+          },
+
+          {
+            "name": "fd_exhaust_last_seen",
+            "description": "Latest file-descriptor exhaustion evidence",
+            "files": "log/syslog*gz",
+            "pattern": "Errno 24|Too many open files",
+            "cmd": "rg -n -z \"Errno\\s*24|Too many open files\" log/syslog*gz 2>/dev/null | tail -n 40"
+          },
+
+          {
+            "name": "redis_socket_last_seen",
+            "description": "Latest redis unix-socket failures",
+            "files": "log/syslog*gz",
+            "pattern": "Unable to connect to redis|unix-socket|Cannot assign requested address",
+            "cmd": "rg -n -z \"Unable to connect to redis|redis.*unix-socket|Cannot assign requested address\" log/syslog*gz 2>/dev/null | tail -n 40"
+          },
+
+          {
+            "name": "snmp_subagent_last_seen",
+            "description": "snmp-subagent / MIBUpdater leak signals",
+            "files": "log/syslog*gz",
+            "pattern": "snmp-subagent|MIBUpdater|sonic_ax_impl|ValueError",
+            "cmd": "rg -n -z \"snmp-subagent|MIBUpdater|sonic_ax_impl|ValueError\" log/syslog*gz 2>/dev/null | tail -n 40"
+          },
+
+          {
+            "name": "arp_update_last_seen",
+            "description": "arp_update noise and sonic-db-cli missing warnings",
+            "files": "log/syslog*gz",
+            "pattern": "arp_update|sonic-db-cli: command not found|ping6: Warning",
+            "cmd": "rg -n -z \"arp_update|sonic-db-cli: command not found|ping6: Warning\" log/syslog*gz 2>/dev/null | tail -n 40"
+          },
+
+          {
+            "name": "monit_mem_last_seen",
+            "description": "Latest monit high-memory alarms",
+            "files": "log/syslog*gz",
+            "pattern": "monit.*mem usage|resource limit",
+            "cmd": "rg -n -z \"monit\\[[0-9]+\\].*mem usage|mem usage of [0-9]+\\.[0-9]+% matches resource limit\" log/syslog*gz 2>/dev/null | tail -n 30"
+          },
+          {
+            "name": "kdump_rcu_stall_blocking_nodes",
+            "description": "RCU stall + blocking structures (often precedes watchdog panic)",
+            "files": "kdump/**",
+            "pattern": "rcu_sched self-detected stall|detected expedited stalls|blocking rcu_node structures",
+            "cmd": "rg -n -z -H -C 2 \"rcu_sched self-detected stall|detected expedited stalls|blocking rcu_node structures\" kdump/** 2>/dev/null | tail -n 120"
+          },
+          {
+            "name": "syslog_syncd_not_exit_gracefully_sigkill",
+            "description": "syncd container did not exit gracefully + docker SIGKILL escalation evidence",
+            "files": "log/syslog*gz",
+            "pattern": "did not exit gracefully|failed to exit within|trying direct SIGKILL|SIGKILL",
+            "cmd": "rg -n -z -H -C 2 \"did not exit gracefully|failed to exit within|trying direct SIGKILL|SIGKILL\" log/syslog*gz 2>/dev/null | tail -n 120"
+          }
+
+
+        ]
+      },
+      "platform": {
+        "aliases": ["platform", "hardware", "optics", "transceiver", "sfp", "qsfp", "fan", "psu", "thermal", "reboot cause"],
+        "items": [
+          {
+            "name": "kdump_oom_logs",
+            "description": "kdump out of memory logs",
+            "files": "log/kdump/*",
+            "pattern": "out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process",
+            "cmd": "rg -n -z -H \"out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process\" kdump/** 2>/dev/null | tail -n 80"
+          },
+          {
+            "name": "transceiver_issues",
+            "description": "Optics insertion, removal, and faults",
+            "files": "log/syslog*",
+            "pattern": "xcvr|transceiver|sfp|qsfp",
+            "cmd": "zgrep -Ehi 'xcvr|transceiver|sfp|qsfp' log/syslog* | grep -Ei 'absent|remove|fail|error|not detected' | tail -n 50"
+          },
+          {
+            "name": "hardware_sensors",
+            "description": "PSU, Fan, and Thermal alarms",
+            "files": "log/syslog*",
+            "pattern": "thermal|psu|fan|sensor",
+            "cmd": "zgrep -Ehi 'thermal|psu|fan|rpm|temp' log/syslog* | grep -Ei 'alarm|fail|crit|high|low' | tail -n 50"
+          },
+          {
+            "name": "reboot_cause",
+            "description": "Check previous reboot cause",
+            "files": "dump/reboot-cause/*",
+            "pattern": "reboot",
+            "cmd": "head -n 20 dump/reboot-cause/* 2>/dev/null || echo 'Reboot cause file not found'"
+          }
+        ]
+      },
+
+      "interface": {
+        "aliases": ["interface", "ports", "link", "lacp", "bond", "portchannel", "link training", "serdes"],
+        "items": [
+          {
+            "name": "lacp_errors",
+            "description": "LACP Aggregation failures and timeouts",
+            "files": "log/syslog*",
+            "pattern": "lacp|bond",
+            "cmd": "zgrep -Ehi 'lacp|bond' log/syslog* | grep -Ei 'fail|churn|timeout|down' | tail -n 50"
+          },
+          {
+            "name": "link_training",
+            "description": "SerDes/Link training failures (Physical Layer)",
+            "files": "log/syslog*",
+            "pattern": "serdes|training",
+            "cmd": "zgrep -Ehi 'serdes|link training' log/syslog* | grep -Ei 'fail|timeout' | tail -n 50"
+          }
+        ]
+      },
+      "device_healthcheck": {
+        "aliases": ["healthcheck",
+          "device health",
+          "health",
+          "platform health",
+          "show environment",
+          "temperature",
+          "psu",
+          "firmware",
+          "pcie",
+          "ssdhealth",
+          "docker",
+          "processes",
+          "top",
+          "system health",
+          "interface counters",
+          "uptime"],
+        "items": [
+          {
+            "name": "kdump_oom_logs",
+            "description": "kdump out of memory logs",
+            "files": "log/kdump/*",
+            "pattern": "out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process",
+            "cmd": "rg -n -z -H \"out_of_memory|Kernel panic - not syncing|panic_on_oom|Out of memory:|oom-killer|invoked oom-killer|Killed process\" kdump/** 2>/dev/null | tail -n 20"
+          },
+          {
+            "name": "sonic_version_info",
+            "description": "SONiC OS Version, Platform, ASIC, and (often) Uptime",
+            "files": "dump/version",
+            "pattern": "SONiC|Version|Platform|ASIC|Uptime",
+            "cmd": "cat dump/version 2>/dev/null"
+          },
+          {
+            "name": "show_environment",
+            "description": "Environment snapshot (sensors + fan + PSU status if captured)",
+            "files": "dump/sensors dump/fan dump/psustatus",
+            "pattern": "sensors|fan|psu",
+            "cmd": "echo '== sensors =='; cat dump/sensors 2>/dev/null; echo; echo '== fan =='; cat dump/fan 2>/dev/null; echo; echo '== psustatus =='; cat dump/psustatus 2>/dev/null"
+          },
+          {
+            "name": "platform_temperature",
+            "description": "Platform temperature output",
+            "files": "dump/temperature",
+            "pattern": "temp|temperature|over|critical",
+            "cmd": "cat dump/temperature 2>/dev/null"
+          },
+          {
+            "name": "platform_firmware_status",
+            "description": "Platform firmware status",
+            "files": "dump/firmware_status",
+            "pattern": "firmware|bios|cpld|fpga|version",
+            "cmd": "cat dump/firmware_status 2>/dev/null"
+          },
+          {
+            "name": "platform_pcieinfo",
+            "description": "PCIe inventory from lspci (closest dump equivalent to 'show platform pcieinfo')",
+            "files": "dump/lspci",
+            "pattern": "PCI|Ethernet|NVMe|SATA|Broadcom|Mellanox|Intel",
+            "cmd": "cat dump/lspci 2>/dev/null"
+          },
+          {
+            "name": "platform_summary",
+            "description": "Platform summary",
+            "files": "dump/platform.summary",
+            "pattern": "Platform|ASIC|Ports|SKU|Serial",
+            "cmd": "cat dump/platform.summary 2>/dev/null"
+          },
+          {
+            "name": "platform_ssdhealth",
+            "description": "SSD health snapshot captured by dump (not smartctl live)",
+            "files": "dump/ssdhealth",
+            "pattern": "SSD|SMART|health|life|wear",
+            "cmd": "cat dump/ssdhealth 2>/dev/null"
+          },
+          {
+            "name": "docker_ps_a",
+            "description": "Docker ps output captured in dump",
+            "files": "dump/docker.ps",
+            "pattern": "docker|CONTAINER|STATUS|Up|Exited|Restarting",
+            "cmd": "cat dump/docker.ps 2>/dev/null"
+          },
+          {
+            "name": "docker_stats",
+            "description": "Docker stats snapshot captured in dump",
+            "files": "dump/docker.stats",
+            "pattern": "CPU|MEM|NET|BLOCK|PIDS",
+            "cmd": "cat dump/docker.stats 2>/dev/null"
+          },
+          {
+            "name": "top_snapshot",
+            "description": "Top output snapshot (includes uptime/load and top CPU/mem offenders)",
+            "files": "dump/top",
+            "pattern": "top|load average|Tasks|%Cpu|MiB Mem",
+            "cmd": "cat dump/top 2>/dev/null"
+          },
+          {
+            "name": "processes_snapshot",
+            "description": "Process list snapshot (ps aux) and memory summary",
+            "files": "dump/ps.aux dump/free dump/vmstat",
+            "pattern": "ps aux|Mem|Swap|vmstat",
+            "cmd": "echo '== ps aux (top 80) =='; sed -n '1,80p' dump/ps.aux 2>/dev/null; echo; echo '== free =='; cat dump/free 2>/dev/null; echo; echo '== vmstat =='; cat dump/vmstat 2>/dev/null"
+          },
+          {
+            "name": "system_health_details",
+            "description": "Service and systemd health proxies from dump",
+            "files": "dump/services.summary dump/systemd.analyze.blame dump/systemd.analyze.dump",
+            "pattern": "service|failed|dead|systemd",
+            "cmd": "echo '== services.summary =='; cat dump/services.summary 2>/dev/null; echo; echo '== systemd.analyze.blame =='; cat dump/systemd.analyze.blame 2>/dev/null"
+          },
+          {
+            "name": "reboot_cause",
+            "description": "Reboot cause",
+            "files": "dump/reboot.cause",
+            "pattern": "Reboot|cause|panic|oom",
+            "cmd": "cat dump/reboot.cause 2>/dev/null"
+          },
+          {
+            "name": "interface_counters_iterations",
+            "description": "Interface counters iterations captured (2 iterations present in this dump)",
+            "files": "dump/interface.counters_1 dump/interface.counters_2 dump/ifconfig.counters_1 dump/ifconfig.counters_2",
+            "pattern": "counters|RX|TX|drops|errors",
+            "cmd": "echo '== interface.counters_1 =='; cat dump/interface.counters_1 2>/dev/null; echo; echo '== interface.counters_2 =='; cat dump/interface.counters_2 2>/dev/null; echo; echo '== ifconfig.counters_1 =='; cat dump/ifconfig.counters_1 2>/dev/null; echo; echo '== ifconfig.counters_2 =='; cat dump/ifconfig.counters_2 2>/dev/null"
+          }
+        ]
+      },
+      "system": {
+        "aliases": ["system", "oom", "out of memory", "disk full", "filesystem", "docker exited", "containers down"],
+        "items": [
+          {
+            "name": "oom_killer",
+            "description": "Out of Memory (OOM) Events",
+            "files": "log/syslog*",
+            "pattern": "Out of memory",
+            "cmd": "zgrep -i 'Out of memory' log/syslog* | tail -n 20"
+          },
+          {
+            "name": "disk_space_warn",
+            "description": "Disk usage warnings",
+            "files": "log/syslog*",
+            "pattern": "No space left|filesystem",
+            "cmd": "zgrep -Ei 'No space left|filesystem full' log/syslog* | tail -n 20"
+          },
+          {
+            "name": "docker_status_failures",
+            "description": "List of Docker containers that have Exited (Crashed)",
+            "files": "dump/docker.ps",
+            "pattern": "Exited",
+            "cmd": "cat dump/docker.ps 2>/dev/null | grep -v 'Up' | grep 'Exited'"
+          }
+        ]
+      },
+
+      "orchagent": {
+        "aliases": ["orchagent", "sai", "asic", "sai_status", "forwarding programming failure"],
+        "items": [
+          {
+            "name": "sai_failures",
+            "description": "SAI (ASIC) Programming Failures - Critical for forwarding",
+            "files": "log/syslog*",
+            "pattern": "SAI_STATUS",
+            "cmd": "zgrep -a 'SAI_STATUS' log/syslog* | grep -v 'SUCCESS' | tail -n 50"
+          }
+        ]
+      },
+
+      "show_version": {
+        "aliases": ["show version", "version", "os version", "sonic version", "image version", "build version"],
+        "items": [
+          {
+            "name": "sonic_version_info",
+            "description": "SONiC OS Version, Platform, ASIC, and Uptime",
+            "files": "dump/version",
+            "pattern": "SONiC Software Version",
+            "cmd": "cat dump/version 2>/dev/null"
+          }
+        ]
+      },
+      "default": {
+        "aliases": ["default", "health", "critical", "errors", "crash", "panic", "traceback", "segfault", "flap", "kernel hang", "docker storms", "syslog critical", "syslog state changes"],
+        "items": [
+          {
+            "name": "sonic_version_info",
+            "description": "SONiC OS Version, Platform, ASIC, and Uptime",
+            "files": "dump/version",
+            "pattern": "SONiC Software Version",
+            "cmd": "cat dump/version 2>/dev/null"
+          },
+          {
+            "name": "docker_status",
+            "description": "Docker status and restart status",
+            "files": "dump/docker.ps",
+            "pattern": "cat dump/docker.ps",
+            "cmd": "cat dump/docker.ps"
+          },
+          {
+            "name": "syslog_syncd_cold_shutdown_sequence",
+            "description": "syncd service stop + cold shutdown requested sequence",
+            "files": "log/syslog*gz",
+            "pattern": "Stopping syncd service|Warm boot flag|cold shutdown syncd|syncd_request_shutdown|requested COLD shutdown|swss-syncd-lock",
+            "cmd": "rg -n -z -H -C 2 \"Stopping syncd service|Warm boot flag|cold shutdown syncd|syncd_request_shutdown|requested COLD shutdown|swss-syncd-lock\" log/syslog*gz 2>/dev/null | rg -v -e \"INFO|NOTICE|DEBUG\" | tail -n 80"
+          },
+          {
+            "name": "kernel_hang_signals",
+            "description": "Watchdog, soft-lockup, hung-task, and RCU stall evidence",
+            "files": "log/syslog*gz kdump/*",
+            "pattern": "watchdog|soft lockup|hung task|RCU stall",
+            "cmd": "rg -a -n -z -H -e \"watchdog|soft lockup|hung task|blocked for more than|rcu_sched|RCU stall|NMI watchdog|watchdog: BUG: soft lockup|Kernel panic - not syncing|softlockup: hung tasks|rcu: INFO|rcu_sched\" log/syslog*gz kdump/* 2>/dev/null | rg -v -e \"INFO|NOTICE|DEBUG\" | tail -n 80"
+          },
+          {
+            "name": "redis_db_corruption_signals",
+            "description": "Redis / DB corruption, persistence, and timeout signals",
+            "files": "log/syslog*gz",
+            "pattern": "redis|RDB|AOF|rocksdb|db timeout",
+            "cmd": "rg -a -n -z -H -e \"redis.*(RDB|AOF|corrupt|checksum|Loading)|rocksdb|COUNTERS_DB|db.*timeout|Failed.*DB|Unable to persist\" log/syslog*gz 2>/dev/null | rg -v -e \"INFO|NOTICE|DEBUG\" | tail -n 80"
+          },
+          {
+            "name": "bgp_neighbor_reason_extract",
+            "description": "BGP neighbor state changes with reasons",
+            "files": "log/bgpd* log/zebra* log/syslog*gz",
+            "pattern": "BGP_STATE_CHANGED|Hold Timer|BFD|Cease",
+            "cmd": "rg -a -n -z -H -e \"BGP_STATE_CHANGED|Hold Timer|Cease|NOTIFICATION|BFD.*(Down|timeout)|frr|bgpd.*(restart|exited)|zebra.*(restart|exited)\" log/bgpd* log/zebra* log/syslog*gz 2>/dev/null | rg -v -e \"INFO|NOTICE|DEBUG\" | tail -n 80"
+          },
+          {
+            "name": "reboot_cause",
+            "description": "reboot cause",
+            "files": "dump/reboot.cause",
+            "pattern": "Reboot cause",
+            "cmd": "cat dump/reboot.cause 2>/dev/null"
+          },
+          {
+            "name": "syncd_warmboot_failures",
+            "description": "syncd crashes, warmboot failures, and ASIC init errors",
+            "files": "log/syslog*gz warmboot/*",
+            "pattern": "syncd|warmboot|ASIC|SDK",
+            "cmd": "rg -a -n -z -H -e \"syncd|warmboot|WARMBOOT|ASIC|SDK|switch.*init|init.*fail|SAI.*(FAIL|ERROR)\" log/syslog*gz warmboot/*/* 2>/dev/null | rg -v -e \"INFO|NOTICE|DEBUG|lldp\" | tail -n 160"
+          },
+          {
+            "name": "dump_identity_quick",
+            "description": "Quick identity: version + reboot-cause headers + newest syslog files (tiny)",
+            "files": "dump/version dump/reboot-cause/* log/syslog*gz",
+            "pattern": "identity",
+            "cmd": "set -e; echo '== dump/version (top 40) =='; sed -n '1,40p' dump/version 2>/dev/null || echo 'dump/version not found'; echo; echo '== reboot-cause (top 20) =='; sed -n '1,20p' dump/reboot-cause/* 2>/dev/null || echo 'dump/reboot-cause not found'; echo; echo '== newest syslog files =='; ls -1t log/syslog*gz 2>/dev/null | head -n 5 || echo 'no log/syslog*gz'"
+          },
+          {
+            "name": "storage_io_filesystem_errors",
+            "description": "Disk full, read-only FS, ext4/jbd2, and I/O errors",
+            "files": "log/syslog*gz",
+            "pattern": "ENOSPC|Read-only|ext4|I/O error",
+            "cmd": "rg -a -n -z -H -e \"No space left|ENOSPC|Read-only file system|EXT4-fs error|jbd2|I/O error|Buffer I/O error|journal.*(failed|corrupt)|systemd-journald.*(fail|corrupt)\" log/syslog*gz 2>/dev/null | tail -n 80"
+          },
+          {
+            "name": "platform_i2c_power_thermal",
+            "description": "I2C timeouts, PSU brownouts, and thermal shutdown events",
+            "files": "log/syslog*gz sys.bus.i2c.devices.tar.gz",
+            "pattern": "i2c|power|thermal",
+            "cmd": "rg -a -n -z -H -e \"i2c.*(timeout|error)|SMBus|brownout|power.*(fail|lost|cycle)|thermal.*(shutdown|critical|overtemp)|overtemp\" log/syslog*gz sys.bus.i2c.devices.tar.gz 2>/dev/null | tail -n 160"
+          },
+          {
+            "name": "newest_syslog_tail_micro",
+            "description": "Micro tail of newest syslog files to reveal messages without dumping everything",
+            "files": "log/syslog.gz",
+            "pattern": "tail-micro",
+            "cmd": "rg -a -n -z -H -e '.' log/syslog.gz | rg -v -e \"operator|var-lib-docker-overlay|DEBUG|run-docker-runtime|INFO|NOTICE\" | tail -n 180"
+          }
+        ]
+      }
+    }
+  },
+
+  "ticket_text_recipes": {
+    "sonic": {
+      "default": {
+        "aliases": ["ticket text", "attachments", "show interface counters", "interface counters", "counters"],
+        "items": [
+          {
+            "name": "ifcounters_txt",
+            "description": "Interface counters from ticket-level text dumps",
+            "files": "*show interface counters*.txt",
+            "pattern": "",
+            "cmd": "for f in *'show interface counters'*.txt; do if [ -f \"$f\" ]; then echo '==== '\"$f\"' ===='; sed -n '1,40p' \"$f\"; echo; fi; done 2>/dev/null || true"
+          }
+        ]
+      }
+    }
+  }
+}
