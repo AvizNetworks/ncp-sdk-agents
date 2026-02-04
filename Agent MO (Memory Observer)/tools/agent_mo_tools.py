@@ -216,7 +216,7 @@ def get_service_memory_stats(base_url, token, device_mac, hours=1):
         
         api_data = response.json()
         results = []
-        target_services = ["swss", "bgp", "ones-agent", "syncd", "redis"] # Expanded list
+        target_services = ["swss", "bgp", "ones-agent", "syncd", "redis", "snmp"] # Expanded list
         mem_data_list = api_data.get("memConsump", [])
 
         for service_entry in mem_data_list:
