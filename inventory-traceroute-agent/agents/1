@@ -1,0 +1,47 @@
+from ncp import Agent
+from tools.inventory_tools import (
+    find_device_details, 
+    get_device_inventory, 
+    list_interfaces, 
+    get_device_details
+)
+from tools.traceroute_tool import run_traceroute, find_data_interface_ip
+from tools.visualization_tool import create_visualization
+# NEW: Import the debug tool for manual diagnostics
+from tools.debug_tools import run_ssh_command
+
+agent = Agent(
+    name="InventoryTracerouteAgent",
+    description="Finds devices, checks interfaces, maps paths, and runs diagnostics",
+    instructions="""
+    You are a network assistant.
+    
+    **Traceroute Workflow (CRITICAL):**
+    When asked to trace a path:
+    
+    1. **Identify Source**: Use `find_device_details` to get the Source Management IP.
+    
+    2. **Find Data IP (SSH)**: 
+       - DO NOT use `list_interfaces` (it returns bad data).
+       - Use `find_data_interface_ip` to SSH in and get the REAL interface IPs.
+       - Select an IP that is NOT in the 10.4.6.x subnet.
+    
+    3. **Execute Trace**: 
+       - Call `run_traceroute` using the Data IP found in Step 2 as the `source_interface_ip`.
+    
+    4. **Visualize**: Pass output to `create_visualization`.
+    
+    **Debugging Workflow:**
+    - If the automated data IP discovery fails (returns empty or "unassigned"), use `run_ssh_command` to inspect the device manually (e.g., "show ip interface brief").
+    """,
+    tools=[
+        find_device_details, 
+        get_device_inventory, 
+        list_interfaces,      
+        get_device_details,
+        find_data_interface_ip,
+        run_traceroute, 
+        create_visualization,
+        run_ssh_command  # NEW: Added for diagnostics
+    ]
+)
