@@ -121,10 +121,6 @@ For Capturing below services memory metrics, we use ONES-API explorer
 Update the following values inside `tools.py`:
 
 ```python
-# Since ncp-db is not available for SDK, using hardcoded values for ONES-Collector.
-# Once NCP DB supports SDK or these services are captured in Metrics DB,
-# this hardcoding can be removed.
-
 BASE_URL_ONES = "Your_ONES_SERVER_URL"
 USERNAME_ONES = "YOUR_ONES_USERNAME"
 PASSWORD_ONES = "YOUR_ONES_PASSWORD"
