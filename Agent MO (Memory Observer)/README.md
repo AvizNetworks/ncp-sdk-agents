@@ -1,4 +1,4 @@
-# Agent-MO (Memory Observability Agent)
+# Agent-MO (Memory Observer)
 
 ## Overview
 
@@ -194,6 +194,12 @@ ncp package .
   * *“Check memory leaks for 192.168.1.5”*
   * *“Forecast memory usage for this device”*
   * *“Analyze network-wide memory utilization”*
+  * *“Any memory leak is observed in the fabric?”*
+  * *“How is the memory footprint in the fabric?”*
+  * *“Why is <host-name> hitting high memory utilization?"*
+  * *“Top 10 devices with high memory utilization”*
+  * *“Did any device start experiencing memory issues?”*
+
 
 ---
 
@@ -224,7 +230,7 @@ A demo recording showcasing Agent-MO’s workflows and capabilities is available
 * Advanced visualization support
 * Automated remediation suggestions
 * Add supports for Additional dataconnectors like cumulus etc.
-* Support for Background agents and automated alerts.
+* Support for Background agents and automated alerts for potential memory leaks.
 
 ---
 
