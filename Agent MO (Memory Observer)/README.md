@@ -180,7 +180,7 @@ ncp package .
 ### 5️⃣ Deploy Agent to NCP Playground
 
 1. Open **NCP Playground**
-2. Upload `agent_mo.ncop`
+2. Upload `agent_mo.ncp`
 3. Deploy the agent to the NCP Server
 
 ---
