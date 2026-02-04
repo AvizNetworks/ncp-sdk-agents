@@ -1,0 +1,12 @@
+[project]
+name = "agent-mo"
+version = "0.1.0"
+description = "An expert network diagnostic assistant specializing in memory utilization analysis, leak detection and forecasting."
+
+[build]
+python_version = "3.11"
+entry_point = "agents.main:agent"
+
+[platform]
+url = "platform_url"
+api_key = "api_key"
