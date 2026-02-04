@@ -32,7 +32,7 @@ agent = Agent(
 )
 ```
 
-Agent-MO strictly operates using **MAC Address** as the primary identifier and relies entirely on **tool-based execution** (no manual SQL or assumptions).
+Agent-MO strictly uses **tool-based execution** (no manual SQL or assumptions).
 
 ---
 
@@ -74,7 +74,6 @@ tools = [
 
 ## Operating Rules & Constraints
 
-* **Primary Identifier:** `mac_address`
 * **Input Normalization:**
   If a user provides IP or Hostname → `get_device_info` **must** be called first.
 * **No Manual SQL:**
@@ -107,20 +106,17 @@ Is it a Catalyst Center device?
 
 ---
 
-## Why ONES Server Credentials Are Required
+## Background Workflow
 
-### Background
-
-The NCP **Metrics DB does not currently capture** memory metrics for certain critical services such as:
+For Capturing below services memory metrics, we use ONES-API explorer
 
 * SWSS
 * BGP
 * ONES-Agent
 * SYNCd
+* SNMP
 
-Because of this limitation, Agent-MO **temporarily relies on ONES APIs** to fetch memory metrics for these services.
-
-### Configuration (Required)
+### Configuration (Required) for ONES-API Integration
 
 Update the following values inside `tools.py`:
 
@@ -133,13 +129,6 @@ BASE_URL_ONES = "Your_ONES_SERVER_URL"
 USERNAME_ONES = "YOUR_ONES_USERNAME"
 PASSWORD_ONES = "YOUR_ONES_PASSWORD"
 ```
-
-### Important Notes
-
-* These credentials are **only required for services not exposed via Metrics DB**
-* Other data connectors fetch data **directly from Metrics DB**
-* This is a **temporary workaround**
-* Future enhancements will remove this dependency once Metrics DB coverage improves
 
 ---
 
@@ -236,11 +225,10 @@ A demo recording showcasing Agent-MO’s workflows and capabilities is available
 
 ## Future Enhancements
 
-* Remove ONES dependency once Metrics DB supports all services
-* Fetch SWSS / SNMP / BGP metrics directly from Metrics DB, if supported via NCP pipeline.
 * Advanced visualization support
 * Automated remediation suggestions
 * Add supports for Additional dataconnectors like cumulus etc.
+* Support for Background agents and automated alerts.
 
 ---
 
