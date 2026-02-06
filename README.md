@@ -76,5 +76,5 @@ my-agent/
 Deploy your first agent in <5 mins! 🚀
 
 ## NCP Agents
-- **Agent MO(memory Observer): AgentMo is an AI agent that provides fabric-wide memory observability by monitoring utilization across devices and key services, enabling early detection of memory bloat and leaks.
-- **sonic-dump-analysis-agent: An AI agent that ingests and analyzes Zendesk tickets, analyzes and correlates tech-support dump data with internal KB similarity matches, and delivers deterministic RCA with recommended remediation steps.
+- **Agent MO(memory Observer)**: AgentMo is an AI agent that provides fabric-wide memory observability by monitoring utilization across devices and key services, enabling early detection of memory bloat and leaks.
+- **sonic-dump-analysis-agent**: An AI agent that ingests and analyzes Zendesk tickets, analyzes and correlates tech-support dump data with internal KB similarity matches, and delivers deterministic RCA with recommended remediation steps.
