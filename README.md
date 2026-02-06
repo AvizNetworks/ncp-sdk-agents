@@ -74,3 +74,7 @@ my-agent/
 - **CLI**: `ncp --help` for auth, build, deploy.
 
 Deploy your first agent in <5 mins! 🚀
+
+## NCP Agents
+- **Agent MO(memory Observer) : AgentMo is an AI agent that provides fabric-wide memory observability by monitoring utilization across devices and key services, enabling early detection of memory bloat and leaks.
+
