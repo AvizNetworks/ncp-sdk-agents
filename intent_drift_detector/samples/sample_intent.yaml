@@ -1,0 +1,126 @@
+# Sample Intent File for NCP-Eng Fabric
+# This file defines the intended/desired configuration state
+# Use this as a template and modify according to your requirements
+
+intent:
+  name: "NCP-Eng Production Intent"
+  version: "1.0"
+  description: "Intended configuration for NCP-Eng VXLAN fabric"
+  created_by: "network-admin"
+  created_date: "2026-02-10"
+
+fabric:
+  name: "NCP-Eng"
+  type: "VXLAN-EVPN"
+
+# Devices in the fabric
+devices:
+  - hostname: "cisconx-engai-leaf01"
+    role: "leaf"
+    management_ip: "10.4.6.21"
+    model: "N3K-C3048TP-1GE"
+    nxos_version: "9.3(9)"
+    
+  - hostname: "cisconx-engai-leaf02"
+    role: "leaf"
+    management_ip: "10.4.6.22"
+    model: "N3K-C3048TP-1GE"
+    nxos_version: "9.3(9)"
+
+# Interface configurations
+interfaces:
+  # Leaf 01 interfaces
+  - device: "cisconx-engai-leaf01"
+    name: "mgmt0"
+    admin_state: "up"
+    mtu: 1500
+    ip_address: "10.4.6.21/24"
+    vrf: "management"
+    
+  - device: "cisconx-engai-leaf01"
+    name: "Loopback0"
+    admin_state: "up"
+    ip_address: "3.3.3.3/32"
+    description: "Router ID"
+    
+  - device: "cisconx-engai-leaf01"
+    name: "Ethernet1/1"
+    admin_state: "up"
+    mtu: 9216
+    mode: "trunk"
+    allowed_vlans: "100-200"
+    native_vlan: 1
+    description: "Uplink to Spine"
+    
+  - device: "cisconx-engai-leaf01"
+    name: "Ethernet1/2"
+    admin_state: "up"
+    mtu: 9216
+    mode: "access"
+    access_vlan: 100
+    description: "Server port"
+
+  # Leaf 02 interfaces
+  - device: "cisconx-engai-leaf02"
+    name: "mgmt0"
+    admin_state: "up"
+    mtu: 1500
+    ip_address: "10.4.6.22/24"
+    vrf: "management"
+    
+  - device: "cisconx-engai-leaf02"
+    name: "Loopback0"
+    admin_state: "up"
+    ip_address: "4.4.4.4/32"
+    description: "Router ID"
+
+# Port-channel configurations
+port_channels:
+  - device: "cisconx-engai-leaf01"
+    name: "port-channel10"
+    admin_state: "up"
+    mode: "trunk"
+    allowed_vlans: "100-200"
+    members:
+      - "Ethernet1/10"
+      - "Ethernet1/11"
+    description: "VPC to Server"
+
+# VRF definitions (if using VXLAN EVPN)
+vrfs:
+  - name: "PROD_VRF"
+    vni: 50001
+    vlan: 2001
+    description: "Production VRF"
+    devices:
+      - "cisconx-engai-leaf01"
+      - "cisconx-engai-leaf02"
+      
+  - name: "DEV_VRF"
+    vni: 50002
+    vlan: 2002
+    description: "Development VRF"
+    devices:
+      - "cisconx-engai-leaf01"
+
+# VXLAN Network definitions (if using VXLAN EVPN)
+networks:
+  - name: "PROD_NET_100"
+    vni: 30100
+    vlan: 100
+    vrf: "PROD_VRF"
+    gateway: "10.100.1.1/24"
+    description: "Production Network 100"
+    devices:
+      - "cisconx-engai-leaf01"
+      - "cisconx-engai-leaf02"
+      
+  - name: "PROD_NET_200"
+    vni: 30200
+    vlan: 200
+    vrf: "PROD_VRF"
+    gateway: "10.200.1.1/24"
+    description: "Production Network 200"
+    devices:
+      - "cisconx-engai-leaf01"
+      - "cisconx-engai-leaf02"
