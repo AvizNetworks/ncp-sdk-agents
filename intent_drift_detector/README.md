@@ -71,10 +71,8 @@ intent_drift_detector/
 │   ├── ndfc_tools.py     # NDFC API integration
 │   └── ones_tools.py     # ONES FM MCP integration
 ├── samples/
-│   └── sample_intent.yaml # Sample intent file template
-└── docs/
-    ├── NDFC_API_Research.md        # API documentation
-    └── NDFC_API_Analysis_Final.md  # API test results
+    └── sample_intent.yaml # Sample intent file template
+
 ```
 
 ## Architecture 
