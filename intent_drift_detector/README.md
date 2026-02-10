@@ -79,34 +79,34 @@ intent_drift_detector/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   Intent Drift Detector                      │
+│                   Intent Drift Detector                     │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │           Intent Source: GitHub URL                   │  │
-│  │  • fetch_intent_from_github                           │  │
-│  │  • get_sample_intent_template                         │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                           ↓                                  │
-│  ┌─────────────────────┐     ┌─────────────────────────┐   │
-│  │  ONES Fabric Manager │     │  Nexus Dashboard (NDFC) │   │
-│  │      (onesfm)        │     │                         │   │
-│  ├─────────────────────┤     ├─────────────────────────┤   │
-│  │ MCP Server Tools:    │     │ REST API Tools:         │   │
-│  │ • fetch_running_     │     │ • login_to_ndfc         │   │
-│  │   config             │     │ • get_fabric_switches   │   │
-│  │                      │     │ • get_all_interfaces    │   │
-│  │                      │     │ • get_fabric_vrfs       │   │
-│  │                      │     │ • get_complete_fabric_  │   │
-│  └─────────────────────┘     │   state                 │   │
-│                               └─────────────────────────┘   │
-│                           ↓                                  │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │            Drift Detection & Reporting                │  │
-│  │  • parse_intent_yaml                                  │  │
-│  │  • compare_intent_vs_running                          │  │
-│  │  • generate_drift_report_markdown                     │  │
-│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │           Intent Source: GitHub URL                  │   │
+│  │  • fetch_intent_from_github                          │   │
+│  │  • get_sample_intent_template                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                           ↓                                 │
+│  ┌─────────────────────┐     ┌─────────────────────────┐    │
+│  │  ONES Fabric Manager│     │  Nexus Dashboard (NDFC) │    │
+│  │      (onesfm)       │     │                         │    │
+│  ├─────────────────────┤     ├─────────────────────────┤    │
+│  │ MCP Server Tools:   │     │ REST API Tools:         │    │
+│  │ • fetch_running_    │     │ • login_to_ndfc         │    │
+│  │   config            │     │ • get_fabric_switches   │    │ 
+│  │                     │     │ • get_all_interfaces    │    │
+│  │                     │     │ • get_fabric_vrfs       │    │
+│  │                     │     │ • get_complete_fabric_  │    │
+│  └─────────────────────┘     │   state                 │    │
+│                              └─────────────────────────┘    │
+│                           ↓                                 │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │            Drift Detection & Reporting               │   │
+│  │  • parse_intent_yaml                                 │   │
+│  │  • compare_intent_vs_running                         │   │
+│  │  • generate_drift_report_markdown                    │   │
+│  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
