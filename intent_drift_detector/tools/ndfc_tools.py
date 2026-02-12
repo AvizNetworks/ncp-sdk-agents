@@ -13,7 +13,7 @@ NDFC_API_BASE = "/appcenter/cisco/ndfc/api/v1/lan-fabric/rest"
 
 def ndfc_login(host: str, username: str, password: str) -> Dict[str, Any]:
     """
-    Authenticate with Nexus Dashboard and get JWT token.
+    Authenticate with Nexus Dashboard and get JWT token and session cookies.
     
     Args:
         host: NDFC host IP or hostname (e.g., "10.4.4.184")
@@ -24,12 +24,14 @@ def ndfc_login(host: str, username: str, password: str) -> Dict[str, Any]:
         Dict containing:
             - success: bool
             - token: JWT token string (if successful)
+            - cookies: Session cookies dict (if successful)
             - error: error message (if failed)
     
     Example:
         result = ndfc_login("10.4.4.184", "admin", "password123")
         if result["success"]:
             token = result["token"]
+            cookies = result["cookies"]
     """
     url = f"https://{host}/login"
     payload = {
@@ -47,9 +49,12 @@ def ndfc_login(host: str, username: str, password: str) -> Dict[str, Any]:
         # NDFC returns token in either 'token' or 'jwttoken' field
         token = data.get("token") or data.get("jwttoken")
         if token:
+            # Extract session cookies - CRITICAL for NDFC authentication
+            cookies = dict(response.cookies)
             return {
                 "success": True,
                 "token": token,
+                "cookies": cookies,
                 "username": data.get("username"),
                 "usertype": data.get("usertype")
             }
@@ -66,7 +71,70 @@ def ndfc_login(host: str, username: str, password: str) -> Dict[str, Any]:
         }
 
 
-def ndfc_get_switches_by_fabricname(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def ndfc_get_all_fabrics(host: str, token: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
+    """
+    Get list of all fabrics configured in NDFC.
+    
+    Args:
+        host: NDFC host IP or hostname
+        token: JWT token from ndfc_login
+        cookies: Session cookies from ndfc_login (optional - if not provided, AuthCookie will be set from token)
+    
+    Returns:
+        Dict containing:
+            - success: bool
+            - fabrics: List of fabric objects (if successful)
+            - error: error message (if failed)
+    
+    Each fabric object contains:
+        - fabricName: Name of the fabric
+        - fabricType: Type (VXLAN_EVPN, etc.)
+        - asn: BGP ASN for the fabric
+        - nvPairs: Fabric configuration parameters
+        - templateName: Fabric template used
+        - provisionMode: Provisioning mode
+    """
+    url = f"https://{host}{NDFC_API_BASE}/control/fabrics"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
+    
+    try:
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False, timeout=30)
+        response.raise_for_status()
+        fabrics = response.json()
+        
+        # Extract key fields for easier consumption
+        simplified_fabrics = []
+        for fabric in fabrics:
+            simplified_fabrics.append({
+                "fabricName": fabric.get("fabricName"),
+                "fabricType": fabric.get("fabricType"),
+                "asn": fabric.get("asn"),
+                "templateName": fabric.get("templateName"),
+                "provisionMode": fabric.get("provisionMode"),
+                "replicationMode": fabric.get("replicationMode"),
+                "networkExtensionTemplate": fabric.get("networkExtensionTemplate")
+            })
+        
+        return {
+            "success": True,
+            "fabrics": simplified_fabrics,
+            "count": len(simplified_fabrics),
+            "raw_data": fabrics  # Include full data for advanced use
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+def ndfc_get_switches_by_fabricname(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get all switches belonging to a specific fabric.
     
@@ -74,6 +142,7 @@ def ndfc_get_switches_by_fabricname(host: str, token: str, fabric_name: str) -> 
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         fabric_name: Name of the fabric (e.g., "NCP-Eng")
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -98,9 +167,12 @@ def ndfc_get_switches_by_fabricname(host: str, token: str, fabric_name: str) -> 
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     try:
-        response = requests.get(url, headers=headers, verify=False, timeout=30)
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False, timeout=30)
         response.raise_for_status()
         switches = response.json()
         
@@ -134,7 +206,7 @@ def ndfc_get_switches_by_fabricname(host: str, token: str, fabric_name: str) -> 
         }
 
 
-def ndfc_get_all_interfaces(host: str, token: str, serial_number: Optional[str] = None) -> Dict[str, Any]:
+def ndfc_get_all_interfaces(host: str, token: str, serial_number: Optional[str] = None, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get interface details for all switches or a specific switch.
     
@@ -142,6 +214,7 @@ def ndfc_get_all_interfaces(host: str, token: str, serial_number: Optional[str] 
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         serial_number: Optional switch serial number to filter interfaces
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -174,9 +247,12 @@ def ndfc_get_all_interfaces(host: str, token: str, serial_number: Optional[str] 
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     try:
-        response = requests.get(url, headers=headers, verify=False, timeout=60)
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False, timeout=60)
         response.raise_for_status()
         interfaces = response.json()
         
@@ -217,7 +293,7 @@ def ndfc_get_all_interfaces(host: str, token: str, serial_number: Optional[str] 
         }
 
 
-def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get VRF definitions and their switch attachments for a fabric.
     
@@ -225,6 +301,7 @@ def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str) -> Dict[str
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         fabric_name: Name of the fabric
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -243,6 +320,9 @@ def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str) -> Dict[str
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     result = {
         "success": True,
@@ -253,13 +333,13 @@ def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str) -> Dict[str
     try:
         # Get VRF definitions
         vrf_url = f"https://{host}{NDFC_API_BASE}/top-down/fabrics/{fabric_name}/vrfs"
-        vrf_response = requests.get(vrf_url, headers=headers, verify=False, timeout=30)
+        vrf_response = requests.get(vrf_url, headers=headers, cookies=cookies, verify=False, timeout=30)
         vrf_response.raise_for_status()
         result["vrfs"] = vrf_response.json()
         
         # Get VRF attachments (which switches have which VRFs)
         attach_url = f"https://{host}{NDFC_API_BASE}/top-down/fabrics/{fabric_name}/vrfs/attachments"
-        attach_response = requests.get(attach_url, headers=headers, verify=False, timeout=30)
+        attach_response = requests.get(attach_url, headers=headers, cookies=cookies, verify=False, timeout=30)
         attach_response.raise_for_status()
         result["attachments"] = attach_response.json()
         
@@ -274,7 +354,7 @@ def ndfc_get_vrfs_by_fabric(host: str, token: str, fabric_name: str) -> Dict[str
         }
 
 
-def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get VXLAN network definitions and their switch-level attachments for a fabric.
     
@@ -282,6 +362,7 @@ def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_na
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         fabric_name: Name of the fabric
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -302,6 +383,9 @@ def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_na
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     result = {
         "success": True,
@@ -312,13 +396,13 @@ def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_na
     try:
         # Get network definitions
         net_url = f"https://{host}{NDFC_API_BASE}/top-down/fabrics/{fabric_name}/networks"
-        net_response = requests.get(net_url, headers=headers, verify=False, timeout=30)
+        net_response = requests.get(net_url, headers=headers, cookies=cookies, verify=False, timeout=30)
         net_response.raise_for_status()
         result["networks"] = net_response.json()
         
         # Get network attachments (which switches have which networks)
         attach_url = f"https://{host}{NDFC_API_BASE}/top-down/fabrics/{fabric_name}/networks/attachments"
-        attach_response = requests.get(attach_url, headers=headers, verify=False, timeout=30)
+        attach_response = requests.get(attach_url, headers=headers, cookies=cookies, verify=False, timeout=30)
         attach_response.raise_for_status()
         result["attachments"] = attach_response.json()
         
@@ -333,7 +417,7 @@ def ndfc_get_switchlevel_networks_by_fabricname(host: str, token: str, fabric_na
         }
 
 
-def ndfc_get_portchannels(host: str, token: str, serial_number: Optional[str] = None) -> Dict[str, Any]:
+def ndfc_get_portchannels(host: str, token: str, serial_number: Optional[str] = None, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get port-channel interface details.
     
@@ -341,6 +425,7 @@ def ndfc_get_portchannels(host: str, token: str, serial_number: Optional[str] = 
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         serial_number: Optional switch serial number to filter
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -367,9 +452,12 @@ def ndfc_get_portchannels(host: str, token: str, serial_number: Optional[str] = 
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     try:
-        response = requests.get(url, headers=headers, verify=False, timeout=30)
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False, timeout=30)
         response.raise_for_status()
         portchannels = response.json()
         
@@ -407,7 +495,7 @@ def ndfc_get_portchannels(host: str, token: str, serial_number: Optional[str] = 
         }
 
 
-def ndfc_get_policy_by_switch(host: str, token: str, serial_number: str) -> Dict[str, Any]:
+def ndfc_get_policy_by_switch(host: str, token: str, serial_number: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get policies applied to a specific switch.
     
@@ -415,6 +503,7 @@ def ndfc_get_policy_by_switch(host: str, token: str, serial_number: str) -> Dict
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         serial_number: Switch serial number
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -435,9 +524,12 @@ def ndfc_get_policy_by_switch(host: str, token: str, serial_number: str) -> Dict
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    # If cookies not provided, use token as AuthCookie (they're the same in NDFC)
+    if cookies is None:
+        cookies = {"AuthCookie": token}
     
     try:
-        response = requests.get(url, headers=headers, verify=False, timeout=30)
+        response = requests.get(url, headers=headers, cookies=cookies, verify=False, timeout=30)
         response.raise_for_status()
         policies = response.json()
         
@@ -471,7 +563,7 @@ def ndfc_get_policy_by_switch(host: str, token: str, serial_number: str) -> Dict
 
 
 # Convenience function to get a complete running state for drift detection
-def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get complete running state of a fabric for drift detection.
     This is a convenience function that aggregates data from multiple APIs.
@@ -480,6 +572,7 @@ def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Di
         host: NDFC host IP or hostname
         token: JWT token from ndfc_login
         fabric_name: Name of the fabric
+        cookies: Session cookies from ndfc_login (required for authentication)
     
     Returns:
         Dict containing:
@@ -504,14 +597,14 @@ def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Di
     }
     
     # Get switches
-    switches_result = ndfc_get_switches_by_fabricname(host, token, fabric_name)
+    switches_result = ndfc_get_switches_by_fabricname(host, token, fabric_name, cookies)
     if switches_result["success"]:
         result["switches"] = switches_result["switches"]
     else:
         result["errors"].append(f"Failed to get switches: {switches_result.get('error')}")
     
     # Get all interfaces
-    interfaces_result = ndfc_get_all_interfaces(host, token)
+    interfaces_result = ndfc_get_all_interfaces(host, token, cookies=cookies)
     if interfaces_result["success"]:
         # Group interfaces by switch hostname
         for intf in interfaces_result["interfaces"]:
@@ -523,7 +616,7 @@ def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Di
         result["errors"].append(f"Failed to get interfaces: {interfaces_result.get('error')}")
     
     # Get VRFs
-    vrfs_result = ndfc_get_vrfs_by_fabric(host, token, fabric_name)
+    vrfs_result = ndfc_get_vrfs_by_fabric(host, token, fabric_name, cookies)
     if vrfs_result["success"]:
         result["vrfs"] = {
             "definitions": vrfs_result["vrfs"],
@@ -533,7 +626,7 @@ def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Di
         result["errors"].append(f"Failed to get VRFs: {vrfs_result.get('error')}")
     
     # Get Networks
-    networks_result = ndfc_get_switchlevel_networks_by_fabricname(host, token, fabric_name)
+    networks_result = ndfc_get_switchlevel_networks_by_fabricname(host, token, fabric_name, cookies)
     if networks_result["success"]:
         result["networks"] = {
             "definitions": networks_result["networks"],
@@ -543,7 +636,7 @@ def ndfc_get_fabric_running_state(host: str, token: str, fabric_name: str) -> Di
         result["errors"].append(f"Failed to get networks: {networks_result.get('error')}")
     
     # Get Port-channels
-    portchannels_result = ndfc_get_portchannels(host, token)
+    portchannels_result = ndfc_get_portchannels(host, token, cookies=cookies)
     if portchannels_result["success"]:
         result["portchannels"] = portchannels_result["portchannels"]
     else:

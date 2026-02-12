@@ -31,6 +31,7 @@ from tools.drift_tools import (
 # Import NDFC Tools
 from tools.ndfc_tools import (
     ndfc_login,
+    ndfc_get_all_fabrics,
     ndfc_get_switches_by_fabricname,
     ndfc_get_all_interfaces,
     ndfc_get_vrfs_by_fabric,
@@ -139,7 +140,11 @@ def generate_drift_report_markdown(drift_result: Dict[str, Any]) -> str:
 @tool
 def login_to_ndfc(host: str, username: str, password: str) -> Dict[str, Any]:
     """
-    Authenticate with Nexus Dashboard Fabric Controller and get access token.
+    Authenticate with Nexus Dashboard Fabric Controller and get access token and session cookies.
+    
+    **IMPORTANT**: This returns BOTH a token AND cookies. You MUST save both and pass them
+    to all subsequent NDFC API calls. NDFC requires both the Bearer token in the Authorization
+    header AND the session cookies for authentication to work properly.
     
     Args:
         host: NDFC host IP or hostname (e.g., "10.4.4.184")
@@ -147,13 +152,47 @@ def login_to_ndfc(host: str, username: str, password: str) -> Dict[str, Any]:
         password: NDFC password
     
     Returns:
-        Authentication result with token if successful.
+        Authentication result with:
+            - token: JWT token string (use in Authorization: Bearer header)
+            - cookies: Session cookies dict (pass to all API calls)
+            - username: Authenticated username
+            - usertype: User type
+    
+    Example:
+        result = login_to_ndfc("10.4.4.184", "admin", "Aviz@123")
+        token = result["token"]
+        cookies = result["cookies"]
+        # Now pass both token AND cookies to all other NDFC tools
     """
     return ndfc_login(host, username, password)
 
 
 @tool
-def get_fabric_switches(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def get_all_fabrics(host: str, token: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
+    """
+    Get list of all fabrics configured in NDFC.
+    
+    Use this to discover what fabrics are available before querying a specific fabric.
+    This is especially useful when you don't know the fabric name or want to list all fabrics.
+    
+    Args:
+        host: NDFC host IP or hostname
+        token: JWT token from login_to_ndfc
+        cookies: Session cookies from login_to_ndfc (required for authentication)
+    
+    Returns:
+        List of fabrics with name, type, ASN, template, and provisioning mode.
+    
+    Example:
+        result = get_all_fabrics("10.4.4.184", token, cookies)
+        for fabric in result["fabrics"]:
+            print(fabric["fabricName"])  # e.g., "NCP-Eng", "Prod-Fabric"
+    """
+    return ndfc_get_all_fabrics(host, token, cookies)
+
+
+@tool
+def get_fabric_switches(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get all switches belonging to a specific fabric from NDFC.
     
@@ -161,15 +200,16 @@ def get_fabric_switches(host: str, token: str, fabric_name: str) -> Dict[str, An
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         fabric_name: Name of the fabric (e.g., "NCP-Eng")
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         List of switches with hostname, IP, serial number, role, model, version, and status.
     """
-    return ndfc_get_switches_by_fabricname(host, token, fabric_name)
+    return ndfc_get_switches_by_fabricname(host, token, fabric_name, cookies)
 
 
 @tool
-def get_all_interfaces(host: str, token: str, serial_number: Optional[str] = None) -> Dict[str, Any]:
+def get_all_interfaces(host: str, token: str, serial_number: Optional[str] = None, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get interface configurations from NDFC for all switches or a specific switch.
     
@@ -177,15 +217,16 @@ def get_all_interfaces(host: str, token: str, serial_number: Optional[str] = Non
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         serial_number: Optional switch serial number to filter interfaces
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         List of interfaces with name, type, admin state, MTU, mode, VLANs, IP, VRF, etc.
     """
-    return ndfc_get_all_interfaces(host, token, serial_number)
+    return ndfc_get_all_interfaces(host, token, serial_number, cookies)
 
 
 @tool
-def get_fabric_vrfs(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def get_fabric_vrfs(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get VRF definitions and their switch attachments for a fabric from NDFC.
     
@@ -193,15 +234,16 @@ def get_fabric_vrfs(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         fabric_name: Name of the fabric
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         VRF definitions and which switches have which VRFs attached.
     """
-    return ndfc_get_vrfs_by_fabric(host, token, fabric_name)
+    return ndfc_get_vrfs_by_fabric(host, token, fabric_name, cookies)
 
 
 @tool
-def get_fabric_networks(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def get_fabric_networks(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get VXLAN network definitions and their switch attachments for a fabric from NDFC.
     
@@ -209,15 +251,16 @@ def get_fabric_networks(host: str, token: str, fabric_name: str) -> Dict[str, An
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         fabric_name: Name of the fabric
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         Network definitions (VNI, VLAN, VRF, gateway) and switch attachments.
     """
-    return ndfc_get_switchlevel_networks_by_fabricname(host, token, fabric_name)
+    return ndfc_get_switchlevel_networks_by_fabricname(host, token, fabric_name, cookies)
 
 
 @tool
-def get_portchannels(host: str, token: str, serial_number: Optional[str] = None) -> Dict[str, Any]:
+def get_portchannels(host: str, token: str, serial_number: Optional[str] = None, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get port-channel configurations from NDFC.
     
@@ -225,15 +268,16 @@ def get_portchannels(host: str, token: str, serial_number: Optional[str] = None)
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         serial_number: Optional switch serial number to filter
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         List of port-channels with name, mode, VLANs, member interfaces, and status.
     """
-    return ndfc_get_portchannels(host, token, serial_number)
+    return ndfc_get_portchannels(host, token, serial_number, cookies)
 
 
 @tool
-def get_switch_policies(host: str, token: str, serial_number: str) -> Dict[str, Any]:
+def get_switch_policies(host: str, token: str, serial_number: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get policies applied to a specific switch from NDFC.
     
@@ -241,15 +285,16 @@ def get_switch_policies(host: str, token: str, serial_number: str) -> Dict[str, 
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         serial_number: Switch serial number
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         List of policies with template name, parameters, and generated config.
     """
-    return ndfc_get_policy_by_switch(host, token, serial_number)
+    return ndfc_get_policy_by_switch(host, token, serial_number, cookies)
 
 
 @tool
-def get_complete_fabric_state(host: str, token: str, fabric_name: str) -> Dict[str, Any]:
+def get_complete_fabric_state(host: str, token: str, fabric_name: str, cookies: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Get complete running state of a fabric for drift detection.
     This aggregates switches, interfaces, VRFs, networks, and port-channels.
@@ -258,12 +303,13 @@ def get_complete_fabric_state(host: str, token: str, fabric_name: str) -> Dict[s
         host: NDFC host IP or hostname
         token: JWT token from login_to_ndfc
         fabric_name: Name of the fabric
+        cookies: Session cookies from login_to_ndfc (required for authentication)
     
     Returns:
         Complete fabric state including all switches, interfaces (grouped by switch),
         VRFs, networks, and port-channels.
     """
-    return ndfc_get_fabric_running_state(host, token, fabric_name)
+    return ndfc_get_fabric_running_state(host, token, fabric_name, cookies)
 
 
 # ============================================================================
@@ -284,6 +330,7 @@ ONES FM provides tools via MCP server to fetch running configurations:
 
 ### 2. Cisco Nexus Dashboard Fabric Controller (NDFC)
 NDFC provides REST APIs for fabric management:
+- 'When user says he want to validate the fabric in NDFC, prompt user for the instance ip, username, password. And use them recursively whereever you need them in future, unless user gives another instance.
 - `login_to_ndfc`: Authenticate with Nexus Dashboard
 - `get_complete_fabric_state`: Get all fabric data in one call
 - Individual tools for switches, interfaces, VRFs, networks, port-channels
@@ -294,6 +341,9 @@ NDFC provides REST APIs for fabric management:
 - User provides a link to their intent YAML file hosted on GitHub
 - Use `fetch_intent_from_github` to download the intent file
 - Use `get_sample_intent_template` if user needs a template to start with
+
+### NOTE:
+- Ask user if needs any sample template to start with if NDFC is selected as the platform. If yes, provide the sample intent template. (get_sample_intent_template tool)
 
 ## Drift Detection Workflow
 
@@ -311,10 +361,12 @@ NDFC provides REST APIs for fabric management:
 2. Fetch intent using `fetch_intent_from_github`
 3. Parse intent using `parse_intent_yaml`
 4. Get NDFC credentials from user
-5. Login using `login_to_ndfc`
-6. Fetch running state using `get_complete_fabric_state`
-7. Compare intent vs running using `compare_intent_vs_running`
-8. Generate report using `generate_drift_report_markdown`
+5. Login using `login_to_ndfc` - this returns BOTH a token AND cookies
+6. **OPTIONAL**: Use `get_all_fabrics` to list available fabrics if user doesn't know the fabric name
+7. **IMPORTANT**: Pass BOTH the token and cookies to all subsequent NDFC API calls
+8. Fetch running state using `get_complete_fabric_state` with token and cookies
+9. Compare intent vs running using `compare_intent_vs_running`
+10. Generate report using `generate_drift_report_markdown`
 
 ## Your Capabilities
 
@@ -336,9 +388,10 @@ NDFC provides REST APIs for fabric management:
 2. Determine which platform manages their fabric:
    - ONES, onesfm → Use ONES FM workflow (MCP tools)
    - NDFC, Nexus Dashboard → Use NDFC workflow (REST API)
-3. Fetch intent from GitHub
-4. Fetch running state from the platform
-5. Compare and generate drift report
+3. For NDFC: After login, you can use `get_all_fabrics` to discover available fabrics if needed
+4. Fetch intent from GitHub
+5. Fetch running state from the platform
+6. Compare and generate drift report
 
 ## Response Guidelines
 
@@ -362,6 +415,7 @@ NDFC provides REST APIs for fabric management:
 
 ### NDFC (Nexus Dashboard)
 - `login_to_ndfc`: Authenticate with NDFC
+- `get_all_fabrics`: List all available fabrics in NDFC
 - `get_fabric_switches`: Get switches in a fabric
 - `get_all_interfaces`: Get interface configurations
 - `get_fabric_vrfs`: Get VRF definitions
@@ -379,6 +433,7 @@ NDFC provides REST APIs for fabric management:
         generate_drift_report_markdown,
         # NDFC Tools
         login_to_ndfc,
+        get_all_fabrics,
         get_fabric_switches,
         get_all_interfaces,
         get_fabric_vrfs,

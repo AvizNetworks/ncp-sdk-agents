@@ -21,7 +21,7 @@ from ncp import MCPConfig
 # Provides: fetch_running_config tool
 ones_fm_mcp_server = MCPConfig(
     transport_type="sse",
-    url="http://10.4.5.113:4321/sse"
+    url="http://10.4.5.76:4321/sse"
 )
 
 # Import Intent Tools (GitHub fetching, YAML parsing, templates)

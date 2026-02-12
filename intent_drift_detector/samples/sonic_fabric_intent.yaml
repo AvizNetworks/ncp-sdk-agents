@@ -1,0 +1,385 @@
+# Intent File for SONiC Spine-Leaf Fabric (ONES FM)
+# Generated from orchestration config
+# This file defines the intended/desired configuration state
+
+intent:
+  name: "SONiC Spine-Leaf Fabric Intent"
+  version: "1.0"
+  description: "Intended configuration for 2-spine 2-leaf SONiC fabric orchestrated via ONES FM"
+  created_by: "network-admin"
+  created_date: "2026-02-12"
+
+fabric:
+  name: "SONiC-Fabric"
+  type: "L3-CLOS"
+  bgp_asn: 1001
+
+# Global Physical Interface Configuration
+physical_defaults:
+  fec: "off"
+  mtu: 9000
+  admin_state: "up"
+
+# NTP Configuration
+ntp:
+  server: "100.100.10.10"
+  timezone: "Asia/Kolkata"
+
+# Syslog Configuration
+syslog:
+  server: "100.100.10.10"
+
+# SNMP Configuration
+snmp:
+  trap_server: "100.100.10.10"
+
+# IP Pools
+ip_pools:
+  loopback: "10.10.10.0/24"
+  leaf_spine: "192.168.3.0/24"
+  leaf_tor: "192.168.4.0/24"
+
+# Anycast Gateway
+anycast:
+  gateway: "100.10.0.0/23"
+  mac: "00:11:22:33:44:55"
+
+# VLAN/VNI Parameters
+vlan_range: "200-205"
+hosts_per_vlan: 10
+routing_symmetric: false
+sag_enabled: false
+
+# Devices in the fabric
+devices:
+  # Spine switches
+  - hostname: "Spine-1"
+    role: "spine"
+    management_ip: "10.4.4.94"
+    bgp_asn: 1001
+    credentials:
+      username: "admin"
+      password: "YourPaSsWoRd"
+    
+  - hostname: "Spine-2"
+    role: "spine"
+    management_ip: "10.4.4.61"
+    bgp_asn: 1001
+    credentials:
+      username: "admin"
+      password: "YourPaSsWoRd"
+
+  # Leaf switches
+  - hostname: "Leaf-1"
+    role: "leaf"
+    management_ip: "10.4.4.96"
+    bgp_asn: 1001
+    credentials:
+      username: "admin"
+      password: "YourPaSsWoRd"
+      
+  - hostname: "Leaf-2"
+    role: "leaf"
+    management_ip: "10.4.4.98"
+    bgp_asn: 1001
+    credentials:
+      username: "admin"
+      password: "YourPaSsWoRd"
+
+# Interface configurations
+interfaces:
+  # ============================================
+  # Spine-1 Interfaces
+  # ============================================
+  - device: "Spine-1"
+    name: "Ethernet47"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Link to Leaf-1 Ethernet51"
+    peer_device: "Leaf-1"
+    peer_interface: "Ethernet51"
+    
+  - device: "Spine-1"
+    name: "Ethernet44"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Link to Leaf-2 Ethernet47"
+    peer_device: "Leaf-2"
+    peer_interface: "Ethernet47"
+
+  # ============================================
+  # Spine-2 Interfaces
+  # ============================================
+  - device: "Spine-2"
+    name: "Ethernet232"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Link to Leaf-1 Ethernet52"
+    peer_device: "Leaf-1"
+    peer_interface: "Ethernet52"
+    
+  - device: "Spine-2"
+    name: "Ethernet240"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Link to Leaf-2 Ethernet48"
+    peer_device: "Leaf-2"
+    peer_interface: "Ethernet48"
+
+  # ============================================
+  # Leaf-1 Interfaces
+  # ============================================
+  - device: "Leaf-1"
+    name: "Ethernet51"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Uplink to Spine-1 Ethernet47"
+    peer_device: "Spine-1"
+    peer_interface: "Ethernet47"
+    
+  - device: "Leaf-1"
+    name: "Ethernet52"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Uplink to Spine-2 Ethernet232"
+    peer_device: "Spine-2"
+    peer_interface: "Ethernet232"
+    
+  - device: "Leaf-1"
+    name: "Ethernet0"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "access"
+    access_vlan: 201
+    description: "Host port to H1 Ethernet0"
+    peer_device: "H1"
+    peer_interface: "Ethernet0"
+
+  # ============================================
+  # Leaf-2 Interfaces
+  # ============================================
+  - device: "Leaf-2"
+    name: "Ethernet47"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Uplink to Spine-1 Ethernet44"
+    peer_device: "Spine-1"
+    peer_interface: "Ethernet44"
+    
+  - device: "Leaf-2"
+    name: "Ethernet48"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "routed"
+    description: "Uplink to Spine-2 Ethernet240"
+    peer_device: "Spine-2"
+    peer_interface: "Ethernet240"
+    
+  - device: "Leaf-2"
+    name: "Ethernet0"
+    admin_state: "up"
+    mtu: 9000
+    fec: "off"
+    mode: "access"
+    access_vlan: 201
+    description: "Host port to H1 Ethernet1"
+    peer_device: "H1"
+    peer_interface: "Ethernet1"
+
+# BGP Configuration
+bgp:
+  unnumbered: false
+  nd_ra_interval: 30
+  asn_ranges:
+    superspine: "10000-20000"
+    spine: "21000-50000"
+    leaf: "51000-60000"
+    tor: "61000-70000"
+  
+  # BGP Neighbors/Sessions
+  sessions:
+    # Spine-1 BGP sessions
+    - device: "Spine-1"
+      neighbor: "Leaf-1"
+      neighbor_ip: "10.4.4.96"
+      remote_asn: 1001
+      description: "iBGP to Leaf-1"
+      
+    - device: "Spine-1"
+      neighbor: "Leaf-2"
+      neighbor_ip: "10.4.4.98"
+      remote_asn: 1001
+      description: "iBGP to Leaf-2"
+      
+    # Spine-2 BGP sessions
+    - device: "Spine-2"
+      neighbor: "Leaf-1"
+      neighbor_ip: "10.4.4.96"
+      remote_asn: 1001
+      description: "iBGP to Leaf-1"
+      
+    - device: "Spine-2"
+      neighbor: "Leaf-2"
+      neighbor_ip: "10.4.4.98"
+      remote_asn: 1001
+      description: "iBGP to Leaf-2"
+
+    # Leaf-1 BGP sessions
+    - device: "Leaf-1"
+      neighbor: "Spine-1"
+      neighbor_ip: "10.4.4.94"
+      remote_asn: 1001
+      description: "iBGP to Spine-1"
+      
+    - device: "Leaf-1"
+      neighbor: "Spine-2"
+      neighbor_ip: "10.4.4.61"
+      remote_asn: 1001
+      description: "iBGP to Spine-2"
+
+    # Leaf-2 BGP sessions
+    - device: "Leaf-2"
+      neighbor: "Spine-1"
+      neighbor_ip: "10.4.4.94"
+      remote_asn: 1001
+      description: "iBGP to Spine-1"
+      
+    - device: "Leaf-2"
+      neighbor: "Spine-2"
+      neighbor_ip: "10.4.4.61"
+      remote_asn: 1001
+      description: "iBGP to Spine-2"
+
+# VLAN definitions
+vlans:
+  - id: 200
+    name: "VLAN200"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - id: 201
+    name: "VLAN201"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - id: 202
+    name: "VLAN202"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - id: 203
+    name: "VLAN203"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - id: 204
+    name: "VLAN204"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - id: 205
+    name: "VLAN205"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+
+# Anycast Gateway / SVI Configuration
+svi_interfaces:
+  - vlan: 200
+    ip_address: "100.10.0.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - vlan: 201
+    ip_address: "100.10.1.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - vlan: 202
+    ip_address: "100.10.2.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - vlan: 203
+    ip_address: "100.10.3.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - vlan: 204
+    ip_address: "100.10.4.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+      
+  - vlan: 205
+    ip_address: "100.10.5.1/24"
+    anycast_mac: "00:11:22:33:44:55"
+    devices:
+      - "Leaf-1"
+      - "Leaf-2"
+
+# Topology Links (for visualization and validation)
+topology:
+  spine_leaf_links:
+    - spine: "Spine-1"
+      spine_port: "Ethernet47"
+      leaf: "Leaf-1"
+      leaf_port: "Ethernet51"
+      
+    - spine: "Spine-1"
+      spine_port: "Ethernet44"
+      leaf: "Leaf-2"
+      leaf_port: "Ethernet47"
+      
+    - spine: "Spine-2"
+      spine_port: "Ethernet232"
+      leaf: "Leaf-1"
+      leaf_port: "Ethernet52"
+      
+    - spine: "Spine-2"
+      spine_port: "Ethernet240"
+      leaf: "Leaf-2"
+      leaf_port: "Ethernet48"
+      
+  host_links:
+    - leaf: "Leaf-1"
+      leaf_port: "Ethernet0"
+      host: "H1"
+      host_port: "Ethernet0"
+      vlan: 201
+      
+    - leaf: "Leaf-2"
+      leaf_port: "Ethernet0"
+      host: "H1"
+      host_port: "Ethernet1"
+      vlan: 201
