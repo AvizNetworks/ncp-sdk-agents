@@ -1,7 +1,0 @@
-# System packages (apt) for your agent
-# Add any system-level dependencies here
-
-# Example packages:
-# curl
-# wget
-# git
