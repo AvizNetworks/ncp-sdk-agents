@@ -175,18 +175,29 @@ ncp playground --agent netpath-agent
 
 ### 6️⃣ Use the NCP UI & Dashboard
 
-* Ask natural language questions in Playground/NCP UI like:
+This project is deployed in two parts: the Backend logic via the NCP UI, and the Visual Dashboard directly on the host VM.
 
+**Part A: Interact via NCP UI**
+1. Access your NCP platform via web browser (e.g. `https://10.4.5.10` or `10.4.4.183`).
+2. Select the **NetPath-Agent** from the Chat interface.
+3. Ask natural language questions like:
   * *"Scan the network topology."*
   * *"Run a full ping mesh to build the heatmap."*
   * *"Trace the route from nexus-leaf1 to 8.8.8.8 and show me a bar chart of the hops."*
-  * *"How is the health of arista-spine1?"*
-  * *"Trend/History analysis for nexus-leaf1 to arista-spine1"*
 
-* Open a new terminal session to run the interactive dashboard:
-```bash
-streamlit run dashboard.py
-```
+**Part B: Run the Streamlit Dashboard**
+Because the agent runs inside a dockerized environment (`ncp-api`), the visual dashboard must extract the SQLite database to the host machine to render charts.
+1. SSH into the NCP Server VM (e.g., `ssh user@10.4.4.183`).
+2. Copy the `dashboard.py` file to this VM if it is not already there.
+3. Extract the active Intelligence Database from the container to the host filesystem:
+   ```bash
+   sudo docker cp ncp-api:/tmp/netpath_data.db /tmp/netpath_data.db
+   ```
+4. Launch the dashboard:
+   ```bash
+   streamlit run dashboard.py
+   ```
+5. View the dashboard at `http://<VM_IP>:8501`.
 
 ---
 
