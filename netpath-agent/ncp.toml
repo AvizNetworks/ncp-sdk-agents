@@ -1,0 +1,12 @@
+[project]
+name = "netpath-agent"
+version = "0.1.2"
+description = "An NCP AI agent project"
+
+[build]
+python_version = "3.11"
+entry_point = "agents.main_agent:agent"
+
+[platform]
+url = "https://10.4.5.10:9001"
+api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdXBlcmFkbWluIiwic2RrIjp0cnVlLCJleHAiOjE3NzMyNDE3ODN9.7C3_wsKQYhBA5l3eBp7XlEeBK5-4ivHq0AaHI1QKLz8"
