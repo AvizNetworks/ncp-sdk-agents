@@ -1,0 +1,3 @@
+iputils-ping
+traceroute
+net-tools
