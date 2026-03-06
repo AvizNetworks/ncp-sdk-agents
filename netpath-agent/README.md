@@ -130,7 +130,7 @@ git checkout netpath-agent
 Edit `tools/inventory.py` and update the `DEVICE_REGISTRY` with your own nodes:
 
 ```python
-"10.4.6.11": {"name": "sonic-leaf1", "platform": "linux", "user": "admin", "pass": "aviz@123"},
+"192.168.4.11": {"name": "sonic-leaf1", "platform": "linux", "user": "admin", "pass": "aviz@123"},
 ```
 
 ---
@@ -178,7 +178,7 @@ ncp playground --agent netpath-agent
 This project is deployed in two parts: the Backend logic via the NCP UI, and the Visual Dashboard directly on the host VM.
 
 **Part A: Interact via NCP UI**
-1. Access your NCP platform via web browser (e.g. `https://10.4.5.10` or `10.4.4.183`).
+1. Access your NCP platform via web browser (e.g. `https://192.168.4.10` or `192.168.4.183`).
 2. Select the **NetPath-Agent** from the Chat interface.
 3. Ask natural language questions like:
   * *"Scan the network topology."*
@@ -187,7 +187,7 @@ This project is deployed in two parts: the Backend logic via the NCP UI, and the
 
 **Part B: Run the Streamlit Dashboard**
 Because the agent runs inside a dockerized environment (`ncp-api`), the visual dashboard must extract the SQLite database to the host machine to render charts.
-1. SSH into the NCP Server VM (e.g., `ssh user@10.4.4.183`).
+1. SSH into the NCP Server VM (e.g., `ssh user@192.168.4183`).
 2. Copy the `dashboard.py` file to this VM if it is not already there.
 3. Extract the active Intelligence Database from the container to the host filesystem:
    ```bash
