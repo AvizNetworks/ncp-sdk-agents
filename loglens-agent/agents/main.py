@@ -4,13 +4,18 @@ Architecture (matches the hackathon proposal):
 
     LogLensAgent (main, entry point)
         └── splunk_query_expert  (AgentTool wrapping SplunkQueryAgent)
-                └── search_splunk          (Splunk REST API)
-                └── list_indexes           (Splunk REST API)
-                └── discover_syslog_fields (Splunk REST API)
-                └── get_splunk_connection_info
+                ├── get_splunk_connection_info  (Splunk REST API — connectivity check)
+                ├── list_indexes                (Splunk REST API — discover indexes + sourcetypes)
+                ├── discover_syslog_fields      (Splunk REST API — field schema for syslog/event data)
+                ├── discover_flow_fields        (Splunk REST API — field schema for sFlow/NetFlow/IPFIX)
+                └── search_splunk              (Splunk REST API — execute any SPL query)
 
-The Query Agent generates and executes SPL queries.
-The LogLens (main) agent interprets results and produces summaries.
+The Query Agent handles all SPL mechanics: discovers available indexes and
+sourcetypes, picks the right field-discovery tool (syslog vs flow), generates
+and executes SPL queries, and returns raw results.
+
+The LogLens (main) agent interprets raw results and produces human-readable
+summaries, tables, and narratives — for both syslog events and flow telemetry.
 """
 
 from ncp import Agent, AgentTool
