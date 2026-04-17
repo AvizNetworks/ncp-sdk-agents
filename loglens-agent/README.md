@@ -75,24 +75,14 @@ No ingestion agent is needed — Splunk handles ingestion and indexing natively.
 ```bash
 git clone https://github.com/AvizNetworks/ncp-sdk-agents.git
 cd ncp-sdk-agents
-git checkout agent-mo
+cd loglens-agent
 ```
 
 ---
 
-### 2️⃣ Configure ONES Credentials
-
-Edit `tools.py` and update:
-
-```python
-BASE_URL_ONES
-USERNAME_ONES
-PASSWORD_ONES
-```
-
 ---
 
-### 3️⃣ Authenticate with NCP
+### 2 Authenticate with NCP
 
 Provide the following details when prompted or via config:
 
@@ -102,7 +92,7 @@ Provide the following details when prompted or via config:
 
 ---
 
-### 4️⃣ Install NCP SDK Package
+### 3 Install NCP SDK Package
 
 ```bash
 pip install ncp
@@ -120,7 +110,7 @@ ncp package .
 ### 5️⃣ Deploy Agent to NCP Playground
 
 1. Open **NCP Playground**
-2. Upload `agent_mo.ncp`
+2. Upload `loglens-agent.ncp`
 3. Deploy the agent to the NCP Server
 
 ---
