@@ -1,0 +1,12 @@
+[project]
+name = "loglens-agent"
+version = "0.1.0"
+description = "NCP LogLens: Syslog Event Intelligence & Natural-Language Q&A for network device logs in Splunk."
+
+[build]
+python_version = "3.11"
+entry_point = "agents.main:agent"
+
+[platform]
+url = "platform_url"
+api_key = "api_key"
