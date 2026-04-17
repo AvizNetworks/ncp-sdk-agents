@@ -68,23 +68,64 @@ No ingestion agent is needed — Splunk handles ingestion and indexing natively.
 
 ---
 
-## Setup
+## Setup & Run Instructions
 
-### 1. Install dependencies
+### 1️⃣ Clone the Repository
+
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/AvizNetworks/ncp-sdk-agents.git
+cd ncp-sdk-agents
+git checkout agent-mo
 ```
 
-### 2. Configure Splunk credentials
-```bash
-cp .env.example .env
-# Edit .env with your Splunk host, port, and token/credentials
+---
+
+### 2️⃣ Configure ONES Credentials
+
+Edit `tools.py` and update:
+
+```python
+BASE_URL_ONES
+USERNAME_ONES
+PASSWORD_ONES
 ```
 
-### 3. Deploy via NCP SDK
+---
+
+### 3️⃣ Authenticate with NCP
+
+Provide the following details when prompted or via config:
+
+* **NCP URL**
+* **Username**
+* **Password**
+
+---
+
+### 4️⃣ Install NCP SDK Package
+
 ```bash
-ncp deploy
+pip install ncp
 ```
+
+### For creating package (.ncp)
+
+```bash
+ncp authenticate
+ncp package .
+```
+
+---
+
+### 5️⃣ Deploy Agent to NCP Playground
+
+1. Open **NCP Playground**
+2. Upload `agent_mo.ncp`
+3. Deploy the agent to the NCP Server
+
+---
+
+### 6️⃣ Use the NCP UI
 
 Update `ncp.toml` with your NCP platform URL and API key before deploying.
 
