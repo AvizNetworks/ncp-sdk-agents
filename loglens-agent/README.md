@@ -1,5 +1,7 @@
 # NCP LogLens — Syslog Event Intelligence & Natural-Language Q&A
 
+
+
 **Track:** AI Agents for Network Operations (Automation / Observability)
 
 LogLens turns natural-language questions into Splunk SPL queries, executes them,
