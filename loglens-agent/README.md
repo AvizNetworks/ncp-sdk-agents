@@ -38,13 +38,43 @@ Supported flow categories: **TOP_TALKERS · FLOW_PAIRS · PROTOCOL_DIST · TRAFF
 ## Architecture
 
 ```
-LogLens Agent  (natural-language Q&A + interpretation)
-    └── SplunkQueryAgent  (SPL generation + execution)
-            ├── get_splunk_connection_info   — verify connectivity
-            ├── list_indexes                 — discover all indexes + sourcetypes
-            ├── discover_syslog_fields       — field schema for syslog/event data
-            ├── discover_flow_fields         — field schema for sFlow/NetFlow/IPFIX
-            └── search_splunk               — execute any SPL query
+             ┌───────────────────────┐
+             │   Networking Devices  │
+             │ (Cisco, Arista, SONiC)│
+             └───────────┬───────────┘
+                         │ Syslogs / Flow logs (sFlow, NetFlow, IPFIX)
+                         ▼
+                 ┌─────────────────┐
+                 │  Splunk Index   │
+                 │ (raw log storage│
+                 │ + tokenization) │
+                 │  10.20.11.23    │
+                 └────────┬────────┘
+                          │ REST API (port 8089)
+                          ▼
+             ┌────────────────────────────────────────┐
+             │         SplunkQueryAgent               │
+             │  (NL → SPL → Execute → Raw Results)   │
+             │                                        │
+             │  Tools:                                │
+             │  ├─ get_splunk_connection_info          │
+             │  ├─ list_indexes                        │
+             │  ├─ discover_syslog_fields              │
+             │  ├─ discover_flow_fields                │
+             │  └─ search_splunk                       │
+             └────────────┬───────────────────────────┘
+                          │ Raw SPL results (JSON)
+                          │ (via AgentTool — splunk_query_expert)
+                          ▼
+             ┌────────────────────────────────────────┐
+             │         LogLens Agent (main)           │
+             │  Interpretation + NL Answer            │
+             │  Summarizes, tables, narratives,       │
+             │  pattern detection                     │
+             └────────────┬───────────────────────────┘
+                          │ Human-readable Answer / Tables
+                          ▼
+                      User / NCP UI
 ```
 
 **SplunkQueryAgent** handles all SPL mechanics: calls `list_indexes` to discover
