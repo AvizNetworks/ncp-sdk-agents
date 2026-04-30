@@ -1,0 +1,39 @@
+# Python dependencies for your agent
+# Add any packages your agent needs here
+
+# Example dependencies:
+# requests>=2.28.0
+# pandas>=1.5.0
+# numpy>=1.21.0
+
+bcrypt==5.0.0
+certifi==2025.11.12
+cffi==2.0.0
+charset-normalizer==3.4.4
+click==8.3.1
+cryptography==46.0.3
+idna==3.11
+invoke==2.2.1
+markdown-it-py==4.0.0
+mdurl==0.1.2
+ncp-sdk==0.2.7
+numpy==2.2.6
+pandas==2.3.3
+paramiko==4.0.0
+pathspec==0.12.1
+prompt_toolkit==3.0.52
+pycparser==2.23
+Pygments==2.19.2
+PyNaCl==1.6.1
+python-dateutil==2.9.0.post0
+pytz==2025.2
+PyYAML==6.0.3
+requests==2.32.5
+rich==14.2.0
+six==1.17.0
+toml==0.10.2
+tzdata==2025.3
+urllib3==2.6.2
+wcwidth==0.2.14
+websockets==15.0.1
+ansible
